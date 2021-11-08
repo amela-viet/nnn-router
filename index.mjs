@@ -1,6 +1,7 @@
 import glob from 'glob'
 import express from 'express'
 const router = express.Router()
+const isWindows = process.platform === 'win32'
 
 export default (options = {}) => {
   const routeDir = ('routeDir' in options) ? options.routeDir : '/routes'
@@ -32,7 +33,7 @@ export default (options = {}) => {
   middlewareSort.forEach(async ([filePath, routePath]) => {
     const methodName = filePath.split('/').slice(-1)[0].replace('.js', '').replace('.ts', '')
     const method = methodName === 'middleware' ? 'use' : methodName
-    const handler = await import(filePath)
+    const handler = await import((isWindows ? 'file://' : '') + filePath)
     if (handler.middleware) {
       handler.middleware.forEach(middleware => {
         temporary[method](routePath, middleware)
